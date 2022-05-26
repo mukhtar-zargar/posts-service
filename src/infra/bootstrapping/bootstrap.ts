@@ -10,6 +10,7 @@ import { TYPES } from "../../application/constants/types";
 import { Logger } from "../logging/pino";
 
 import "../../application/rest_api/controllers/index.controller";
+import "../../application/rest_api/controllers/post.controller";
 import { IAppDataSource } from "../typeorm/typeorm.config";
 
 export async function bootstrap(
