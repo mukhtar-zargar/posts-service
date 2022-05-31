@@ -12,12 +12,12 @@ import { Logger } from "../logging/pino";
 import "../../application/rest_api/controllers/index.controller";
 import "../../application/rest_api/controllers/post.controller";
 import { IAppDataSource } from "../typeorm/typeorm.config";
+import { DomainConsumerMessagingRepositoryKafka } from "../messaging/kafka/consumer";
+import { KafkaConfiguration } from "../messaging/kafka/configuration";
+import { AppSettings } from "../../settings.ts/app.settings";
+import { UserConsumer } from "../../application/consumers/user.consumer";
 
-export async function bootstrap(
-  container: Container,
-  port: number,
-  ...modules: ContainerModule[]
-) {
+export async function bootstrap(container: Container, port: number, ...modules: ContainerModule[]) {
   if (!container.isBound(TYPES.App)) {
     container.load(...modules);
     const logger = container.get<Logger>(TYPES.Logger).get();
@@ -43,13 +43,25 @@ export async function bootstrap(
     });
 
     try {
-      const appDataSource = container
-        .get<IAppDataSource>(TYPES.DataSource)
-        .instance();
+      const appDataSource = container.get<IAppDataSource>(TYPES.DataSource).instance();
 
       await appDataSource.initialize();
 
       logger.info("Initialized database");
+
+      const consumer = new DomainConsumerMessagingRepositoryKafka(
+        KafkaConfiguration.getKafkaConfiguration({
+          KAFKA_BROKERS: [AppSettings.KAFKA_BROKER],
+          KAFKA_SASL_USERNAME: AppSettings.KAFKA_SASL_USERNAME || "dummy",
+          KAFKA_SASL_PASSWORD: AppSettings.KAFKA_SASL_PASSWORD || "pass",
+          KAFKA_CONNECTION_TIMEOUT: 5000,
+          KAFKA_CERTIFICATE_BASE64: "122"
+        })
+      );
+
+      const userConsumer = new UserConsumer();
+
+      consumer.subscribe(userConsumer.getAllUserConsumers());
 
       const app = server.build();
       app.listen(port, () => {
