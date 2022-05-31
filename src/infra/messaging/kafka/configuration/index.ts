@@ -57,7 +57,7 @@ class KafkaConfiguration {
     this.KAFKA_CORRELATION_ID_MAX_LENGTH = kafkaConfigParams.KAFKA_CORRELATION_ID_MAX_LENGTH;
   }
 
-  static async getKafkaConfiguration(config: IKafkaConfigParams) {
+  static getKafkaConfiguration(config: IKafkaConfigParams) {
     return new KafkaConfiguration(config);
   }
 }

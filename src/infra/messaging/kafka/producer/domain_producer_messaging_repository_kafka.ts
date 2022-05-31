@@ -25,21 +25,19 @@ export class DomainProducerMessagingRepositoryKafka implements IDomainProducerMe
       clientId: "",
       connectionTimeout: kafkaConfiguration.KAFKA_CONNECTION_TIMEOUT,
       brokers: kafkaConfiguration.KAFKA_BROKERS,
-      ssl: {
-        rejectUnauthorized: false,
-        ca: [kafkaConfiguration.KAFKA_CERTIFICATE]
-      },
-      sasl: {
-        mechanism: kafkaConfiguration.KAFKA_SASL_MECHANISM as any,
-        username: kafkaConfiguration.KAFKA_SASL_USERNAME,
-        password: kafkaConfiguration.KAFKA_SASL_PASSWORD
-      },
+      // ssl: {
+      //   rejectUnauthorized: false,
+      //   ca: [kafkaConfiguration.KAFKA_CERTIFICATE]
+      // },
+      // sasl: {
+      //   mechanism: kafkaConfiguration.KAFKA_SASL_MECHANISM as any,
+      //   username: kafkaConfiguration.KAFKA_SASL_USERNAME,
+      //   password: kafkaConfiguration.KAFKA_SASL_PASSWORD
+      // },
       logLevel: logLevel.INFO
     });
 
     this._producer = this.getNewProducer();
-    // Connect - temp
-    this._producer.connect();
   }
 
   private getNewProducer() {

@@ -1,10 +1,7 @@
 import { inject, injectable } from "inversify";
 import { MongoRepository } from "typeorm";
 import { Post } from "../../../domain/posts/post";
-import {
-  IPostProps,
-  TGetAllPostsProps
-} from "../../../domain/posts/post.props";
+import { IPostProps, TGetAllPostsProps } from "../../../domain/posts/post.props";
 import { IPostRepository } from "../../../domain/posts/post.repo";
 import { Post as PostModel } from "../../typeorm/models/post.model";
 import { Comment as CommentModel } from "../../typeorm/models/comment.model";
@@ -13,20 +10,25 @@ import { TYPES } from "../../../application/constants/types";
 import { IAppDataSource } from "../../typeorm/typeorm.config";
 import { getObjectId } from "../../typeorm/utils";
 import { CustomError } from "../../errors/base.error";
+import { IDomainProducerMessagingRepository } from "../../../domain/ports/messaging/producer";
+import { v4 } from "uuid";
 
 @injectable()
 export class PostRepository implements IPostRepository {
   protected logger: ILogger;
   protected postDataSource: MongoRepository<PostModel>;
 
+  protected producer: IDomainProducerMessagingRepository;
+
   constructor(
     @inject(TYPES.Logger) logger: Logger,
-    @inject(TYPES.DataSource) appDataSource: IAppDataSource
+    @inject(TYPES.DataSource) appDataSource: IAppDataSource,
+    @inject(TYPES.MessagingProducer) producer: () => IDomainProducerMessagingRepository
   ) {
     this.logger = logger.get();
-    this.postDataSource = appDataSource
-      .instance()
-      .getMongoRepository(PostModel);
+    this.postDataSource = appDataSource.instance().getMongoRepository(PostModel);
+
+    this.producer = producer();
   }
 
   async getById(id: string): Promise<Post> {
@@ -86,6 +88,22 @@ export class PostRepository implements IPostRepository {
     try {
       let postToSave = this.postDataSource.create(post);
       const res = await this.postDataSource.save(postToSave);
+      this.producer.publish(
+        "post_service",
+        {
+          partition: 0,
+          dateTimeOccurred: new Date(),
+          eventId: v4(),
+          data: postToSave,
+          eventSource: "post_service",
+          eventType: "post_created"
+        },
+        {
+          noAvroEncoding: true,
+          nonTransactional: true
+        }
+      );
+
       return Post.create({
         ...res,
         id: res.id.toString(),
