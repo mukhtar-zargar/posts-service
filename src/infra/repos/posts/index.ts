@@ -1,5 +1,7 @@
 import { inject, injectable } from "inversify";
 import { MongoRepository } from "typeorm";
+import { v4 } from "uuid";
+
 import { Post } from "../../../domain/posts/post";
 import { IPostProps, TGetAllPostsProps } from "../../../domain/posts/post.props";
 import { IPostRepository } from "../../../domain/posts/post.repo";
@@ -11,7 +13,7 @@ import { IAppDataSource } from "../../typeorm/typeorm.config";
 import { getObjectId } from "../../typeorm/utils";
 import { CustomError } from "../../errors/base.error";
 import { IDomainProducerMessagingRepository } from "../../../domain/ports/messaging/producer";
-import { v4 } from "uuid";
+import { PostEvents, Topics } from "../../../application/constants/messaging.constants";
 
 @injectable()
 export class PostRepository implements IPostRepository {
@@ -89,14 +91,14 @@ export class PostRepository implements IPostRepository {
       let postToSave = this.postDataSource.create(post);
       const res = await this.postDataSource.save(postToSave);
       this.producer.publish(
-        "post_service",
+        Topics.PostService,
         {
           partition: 0,
           dateTimeOccurred: new Date(),
           eventId: v4(),
           data: postToSave,
-          eventSource: "post_service",
-          eventType: "post_created"
+          eventSource: Topics.PostService,
+          eventType: PostEvents.Created
         },
         {
           noAvroEncoding: true,

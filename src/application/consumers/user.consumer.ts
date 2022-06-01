@@ -1,15 +1,11 @@
 import { SubscriptionParameters } from "../../domain/ports/messaging/consumer";
-
-const UserServiceTopic = "user_service";
-
-const SignUpEvent = "signup";
-const SignInEvent = "signin";
+import { Topics, UserEvents } from "../constants/messaging.constants";
 
 class UserConsumer {
   onUserSignup(): SubscriptionParameters {
     return {
-      topic: UserServiceTopic,
-      eventTypes: [SignUpEvent],
+      topic: Topics.UserService,
+      eventTypes: [UserEvents.Signup],
       readFromBeginning: true,
       handles: {
         async handle(event) {
@@ -24,8 +20,8 @@ class UserConsumer {
 
   onUserSignIn(): SubscriptionParameters {
     return {
-      topic: UserServiceTopic,
-      eventTypes: [SignInEvent],
+      topic: Topics.UserService,
+      eventTypes: [UserEvents.Signin],
       readFromBeginning: true,
       handles: {
         async handle(event) {
