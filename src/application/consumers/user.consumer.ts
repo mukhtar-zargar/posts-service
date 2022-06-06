@@ -33,10 +33,8 @@ class UserConsumer {
       }
     };
   }
-
-  getAllUserConsumers() {
-    return [this.onUserSignup(), this.onUserSignIn()];
-  }
 }
 
-export { UserConsumer };
+const userConsumer = new UserConsumer();
+
+export default [userConsumer.onUserSignup(), userConsumer.onUserSignIn()];

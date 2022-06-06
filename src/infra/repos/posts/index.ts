@@ -96,7 +96,8 @@ export class PostRepository implements IPostRepository {
           partition: 0,
           dateTimeOccurred: new Date(),
           eventId: v4(),
-          data: postToSave,
+          data: { ...postToSave, id: res.id },
+          value: { ...postToSave, id: res.id },
           eventSource: Topics.PostService,
           eventType: PostEvents.Created
         },
