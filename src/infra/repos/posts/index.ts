@@ -93,7 +93,7 @@ export class PostRepository implements IPostRepository {
       this.producer.publish(
         Topics.PostService,
         {
-          partition: 0,
+          // partition: 0,
           dateTimeOccurred: new Date(),
           eventId: v4(),
           data: { ...postToSave, id: res.id },
